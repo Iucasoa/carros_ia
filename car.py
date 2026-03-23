@@ -4,6 +4,14 @@ import math
 class Car:
 
     def __init__(self, x, y):
+        
+        self.distancia = 0
+        self.ultimo_x = x
+
+        from neural_network import NeuralNetwork
+
+        self.cerebro = NeuralNetwork()
+        self.tempo_vivo = 0
 
         self.x = x
         self.y = y
@@ -16,6 +24,14 @@ class Car:
         self.sensores = []
 
     def mover(self):
+
+        dist = abs(self.x - self.ultimo_x)
+        self.distancia += dist
+        self.ultimo_x = self.x
+
+        self.tempo_vivo += 1
+
+        self.decidir()
 
         self.x += math.cos(self.angulo) * self.velocidade
         self.y += math.sin(self.angulo) * self.velocidade
@@ -59,3 +75,28 @@ class Car:
 
             if carro_rect.colliderect(obst_rect):
                 self.vivo = False
+
+    def decidir(self):
+
+        if len(self.sensores) < 5:
+            return
+
+        inputs = [s[2]/120 for s in self.sensores]
+        outputs = self.cerebro.forward(inputs)
+
+        #decisões
+
+        if outputs[0] > 0.5:
+            self.angulo -= 0.1
+        if outputs[1] > 0.5:
+            self.angulo += 0.1
+        if outputs[2] > 0:
+            self.velocidade = 2
+
+    def calcular_fitenss(self):
+
+        if not self.vivo:
+            return self.tempo_vivo + self.distancia
+
+        return self.distancia + self.tempo_vivo
+    
