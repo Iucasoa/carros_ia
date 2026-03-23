@@ -3,9 +3,9 @@ import math
 
 class NeuralNetwork:
 
-    def__init__(self):
+    def __init__(self):
     
-    self.pesos = [[random.uniform(-1,1) for _ in range(5)] for _ in range(3)]
+        self.pesos = [[random.uniform(-1,1) for _ in range(5)] for _ in range(3)]
     
     def ativacao(self, x):
         return math.tanh(x)
