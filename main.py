@@ -1,117 +1,91 @@
 import pygame
+import random
+# Lembre de manter suas importações certas conforme a estrutura das pastas
 from car import Car
-from obstaculo import Obstaculo
+from obstaculo import Obstaculo # Obstaculo agora é uma Parede com Buraco
+from pista import Pista
+import genetic
 
 pygame.init()
-
-largura = 800
-altura = 600
-
-tela = pygame.display.set_mode((largura, altura))
-
-pygame.display.set_caption("Carros com IA")
-
+LARGURA, ALTURA = 800, 600
+tela = pygame.display.set_mode((LARGURA, ALTURA))
 clock = pygame.time.Clock()
+fonte = pygame.font.SysFont("Arial", 18)
 
-carros = []
+X_INIT, Y_INIT = 400, 550
 
-import random
-
-carros = []
-
-for i in range(20):
-
-    x = random.randint(200,600)
-
-    y = random.randint(400,550)
-
-    carros.append(Car(x,y))
-
-obstaculos = []
-
+# Inicialização da Geração 1
+carros = [Car(X_INIT, Y_INIT) for _ in range(20)]
+pista_jogo = Pista()
+obstaculos = [] # Lista de Paredes com Buraco
 spawn_timer = 0
-
+geracao = 1
 rodando = True
 
-geracao = 1
-
-#criando fonte para exibir a geração
-fonte = pygame.font.SysFont("Arial", 20)
-
-
 while rodando:
+    for ev in pygame.event.get():
+        if ev.type == pygame.QUIT: rodando = False
 
+    tela.fill((25, 25, 25))
+    pista_jogo.desenhar(tela) # Bordas laterais
 
-    # eventos
-    for evento in pygame.event.get():
-
-        if evento.type == pygame.QUIT:
-
-            rodando = False
-
-    tela.fill((30,30,30))
-
-    # gerar obstáculo
+# Spawn de Paredes
     spawn_timer += 1
-
-    if spawn_timer > 60:
-
-        obstaculos.append(Obstaculo())
-
+    
+    # AUMENTADO: De 90/150 para 220. 
+    # Agora o carro tem muito tempo para cruzar a tela de um lado pro outro!
+    if spawn_timer > 220: 
+        obstaculos.append(Obstaculo(largura_tela=800))
         spawn_timer = 0
 
-    # atualizar obstáculos
-    for obstaculo in obstaculos:
+    # Atualizar Obstáculos
+    for obs in obstaculos[:]:
+        obs.mover() # Agora a parede desce usando a velocidade dela
+        obs.desenhar(tela)
+        if obs.y > ALTURA:
+            obstaculos.remove(obs)
 
-        obstaculo.mover()
-
-        obstaculo.desenhar(tela)
-
-    # atualizar carros
-    for carro in carros:
-
-        if carro.vivo:
-
-            carro.mover(obstaculos)
-
-            carro.colisao(obstaculos)
-
-            carro.desenhar(tela)
-
-            vivos = [c for c in carros if c.vivo]
-            if len(vivos) == 0:
-
-                carros = Car.nova_geracao(carros)
-
-                obstaculos.clear()
-
-                break
-
-    def nova_geracao(carros):
-
-        carros.sort(key=lambda c: c.calcular_fitenss(), reverse=True)
-
-        melhores = carros[:5]
-        novos_carros = []
-
-        for i in range(20):
-
-            pai = random.choice(melhores)
-
-            filho = cerebro.pesos = [row[:] for row in pai.cerebro.pesos]
-
-            filho.cerebro.mutar()
-
-            novos_carros.append(filho)
-
-            return novos_carros
+    # Atualizar Carros Vivos
+    vivos = [c for c in carros if c.vivo]
+    for c in carros:
+        c.desenhar(tela) # Desenha mortos e vivos (mortos em vermelho)
         
-        texto = fonte.render(f"Geração: {geracao} Vivos: {len(vivos)}", True, (255,255,255))
-        tela.blit(texto, (10,10))
+        if c.vivo:
+            # 1. Movimento e Visão (Informa as Paredes para o sensor)
+            c.mover(obstaculos)
+            
+            # 2. NOVO: Validação da Recompensa (Checkpoint)
+            rect_carro_atual = pygame.Rect(c.x, c.y, 20, 10)
+            
+            for obs in obstaculos:
+                # Se o ID deste carro ainda não Validou este buraco
+                if c.id not in obs.carros_passaram:
+                    # Se o carro colidiu com o checkpoint azul virtual do buraco
+                    if rect_carro_atual.colliderect(obs.checkpoint_rect):
+                        # RECOMPENSA VALIDADA!
+                        c.buracos_passados += 1
+                        obs.carros_passaram.add(c.id) # Marca este buraco como concluído por este ID
+                        # Opcional: print para diagnóstico
+                        # print(f"Carro {c.id} passou pelo buraco {geracao}! Total: {c.buracos_passados}")
 
-        
-    pygame.display.update()
+            # 3. Colisão Física (Morte)
+            # O c.colisao precisa checar parede esq, dir e bordas da pista
+            c.colisao(obstaculos, pista_jogo.paredes)
 
+    # Reinício da Geração (Evolução Gradual)
+    if not vivos:
+        print(f"Fim da Geração {geracao}. Evoluindo com foco em buracos passados.")
+        # ATUALIZE ESTA LINHA: Passe os obstaculos como quarto parâmetro
+        carros = genetic.criar_nova_geracao(carros, X_INIT, Y_INIT, obstaculos)
+        obstaculos.clear()
+        spawn_timer = 0
+        geracao += 1
+
+    # Texto na Tela
+    info = fonte.render(f"Geração: {geracao} | Vivos: {len(vivos)}", True, (255, 255, 255))
+    tela.blit(info, (10, 10))
+
+    pygame.display.flip()
     clock.tick(60)
 
 pygame.quit()
