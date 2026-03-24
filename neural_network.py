@@ -3,15 +3,13 @@ import math
 
 class NeuralNetwork:
     def __init__(self):
-        # Pesos fortes o suficiente para tomarem decisões claras desde o frame 1
+        # 7 sensores + 1 BIAS = 8 entradas. Apenas 2 saídas (Esquerda, Direita).
         self.pesos = [
-            [random.uniform(-1.0, 1.0) for _ in range(7)], 
-            [random.uniform(-1.0, 1.0) for _ in range(7)], 
-            [random.uniform(-1.0, 1.0) for _ in range(7)]  
+            [random.uniform(-1.0, 1.0) for _ in range(8)], 
+            [random.uniform(-1.0, 1.0) for _ in range(8)]
         ]
 
     def ativacao(self, x):
-        # Tanh retorna entre -1 e 1. Zero significa indecisão.
         return math.tanh(x)
 
     def forward(self, inputs):
@@ -20,15 +18,19 @@ class NeuralNetwork:
             soma = 0 
             for i in range(len(inputs)):
                 soma += inputs[i] * neuronio[i]
+            # Adiciona o BIAS (estímulo natural)
+            soma += 1.0 * neuronio[-1]
             outputs.append(self.ativacao(soma))
         return outputs
 
     def mutar(self):
-        # Mutação agressiva (20% de chance) para forçar a descoberta do buraco rápido
         for i in range(len(self.pesos)):
             for j in range(len(self.pesos[i])):
-                if random.random() < 0.2: 
-                    self.pesos[i][j] += random.uniform(-1.0, 1.0)
+                # Reduzido de 20% para 10% de probabilidade
+                if random.random() < 0.10: 
+                    # Reduzido de [-1.0, 1.0] para [-0.3, 0.3]. 
+                    # Agora é um ajuste fino, não uma mudança radical!
+                    self.pesos[i][j] += random.uniform(-0.3, 0.3)
 
     def crossover(self, outro_pai):
         filho = NeuralNetwork()

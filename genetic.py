@@ -1,20 +1,21 @@
 import random
 from car import Car
 
-# Agora passamos os obstáculos para calcular quem estava mais alinhado
-def criar_nova_geracao(carros_antigos, x_inicial, y_inicial, obstaculos):
+def criar_nova_geracao(carros_antigos, x_inicial, y_inicial):
+    carros_antigos.sort(key=lambda c: c.calcular_fitness(), reverse=True)
     
-    # Avalia o fitness passando a lista de obstáculos atual
-    carros_antigos.sort(key=lambda c: c.calcular_fitness(obstaculos), reverse=True)
-    
-    melhores = carros_antigos[:5]
+    tamanho_pop_original = len(carros_antigos)
+    melhores = carros_antigos[:8] 
     novos_carros = []
 
-    elite = Car(x_inicial, y_inicial)
-    elite.cerebro = melhores[0].cerebro
-    novos_carros.append(elite)
+    # AUMENTADO: Os 5 melhores carros passam para a próxima geração INTACTOS
+    # Isso garante que a linha do gráfico NUNCA desce mais do que o recorde anterior
+    for i in range(5):
+        elite = Car(x_inicial, y_inicial)
+        elite.cerebro = melhores[i].cerebro
+        novos_carros.append(elite)
 
-    while len(novos_carros) < 20:
+    while len(novos_carros) < tamanho_pop_original:
         pai = random.choice(melhores)
         mae = random.choice(melhores)
         

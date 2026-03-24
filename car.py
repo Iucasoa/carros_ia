@@ -15,28 +15,46 @@ class Car:
         self.id = random.randint(1000, 9999)
         self.cerebro = NeuralNetwork()
         self.sensor = Sensor(self)
+        self.melhor_distancia_alvo = 1000 # Regista a melhor tentativa
 
-    def mover(self, obstaculos):
+# Adicionamos 'pista_paredes' como argumento
+    def mover(self, obstaculos, pista_paredes): 
         if not self.vivo: return
         self.tempo_vivo += 1
 
+        # Pega nos obstáculos que estão a cair
         list_rects = [obs.parede_esq for obs in obstaculos] + [obs.parede_dir for obs in obstaculos]
+        
+        # A MAGIA AQUI: Adiciona as bordas da pista à visão do carro!
+        list_rects.extend(pista_paredes) 
+        
         self.sensor.atualizar(list_rects)
         self.decidir()
 
+        # Descobre qual é a parede que se aproxima
+        obs_alvo = next((obs for obs in obstaculos if obs.y < self.y), None)
+        if obs_alvo:
+            centro_buraco = obs_alvo.gap_x + (obs_alvo.largura_buraco / 2)
+            dist_atual = abs(self.x - centro_buraco)
+            if dist_atual < self.melhor_distancia_alvo:
+                self.melhor_distancia_alvo = dist_atual
+
     def decidir(self):
-        # Inverte: 1.0 é parede grudada, 0.0 é caminho livre
         inputs = [1.0 - (s / self.sensor.max_dist) for s in self.sensor.leituras]
         out = self.cerebro.forward(inputs)
 
-        velocidade_lateral = 7.5 
+        # Aumentamos a agilidade física do carro
+        velocidade_lateral = 7.0 
 
-        # Como usamos Tanh, a saída vai de -1 a 1. 
-        # Só agimos se a vontade for positiva (> 0.0)
-        if out[0] > 0.0 and out[0] > out[1]: 
-            self.x -= velocidade_lateral
-        elif out[1] > 0.0 and out[1] > out[0]: 
-            self.x += velocidade_lateral
+        # NOVA LÓGICA DE DECISÃO: Força a ação!
+        # out[0] é a vontade de ir para a Esquerda, out[1] para a Direita.
+        # Se a diferença entre as vontades for mínima, ele vai a direito.
+        if abs(out[0] - out[1]) < 0.1:
+            pass # Fica a direito
+        elif out[0] > out[1]: 
+            self.x -= velocidade_lateral # Vai para a Esquerda
+        else: 
+            self.x += velocidade_lateral # Vai para a Direita
 
         if self.x < 20: self.x = 20
         if self.x > 760: self.x = 760
@@ -50,23 +68,24 @@ class Car:
             if rect.colliderect(parede):
                 self.vivo = False
 
-    # A MAGIA ACONTECE AQUI: Recebemos os obstáculos para saber onde está o buraco
-    def calcular_fitness(self, obstaculos):
-        fit = (self.buracos_passados * 5000) + self.tempo_vivo
+    def calcular_fitness(self):
+        # 1. Passar buracos é o prémio absoluto
+        fit = self.buracos_passados * 10000
+        
+        # 2. ALINHAMENTO É TUDO (Multiplicado por 5 para esmagar o tempo de vida)
+        # Agora o carro que tenta alinhar com o buraco ganha milhares de pontos a mais
+        bonus_mira = (1000 - self.melhor_distancia_alvo) * 5
+        if bonus_mira > 0:
+            fit += bonus_mira
 
-        # Bônus de Alinhamento: Premia quem morreu, mas morreu PERTO do buraco
-        if obstaculos:
-            # Pega o centro do buraco da primeira parede que está caindo
-            centro_buraco = obstaculos[0].gap_x + (obstaculos[0].largura_buraco / 2)
-            distancia_x = abs(self.x - centro_buraco)
-            
-            # Quanto menor a distância, maior o bônus (até 800 pontos extras)
-            bonus_mira = 800 - distancia_x
-            if bonus_mira > 0:
-                fit += bonus_mira
+        # 3. Tempo de vida passou a ser apenas um desempate menor
+        fit += self.tempo_vivo 
 
         if not self.vivo:
-            fit *= 0.3 
+            # Punição reduzida (0.5 em vez de 0.1) para não destruir o fitness 
+            # de quem foi corajoso e tentou virar rápido para o buraco!
+            fit *= 0.5 
+            
         return fit
 
     def desenhar(self, tela):
