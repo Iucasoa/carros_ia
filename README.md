@@ -7,85 +7,91 @@
 
 ## 📖 Descrição
 
-Projeto de simulação computacional desenvolvido para demonstrar o aprendizado de máquina em agentes virtuais. O **Carros IA** é um ambiente onde veículos autônomos aprendem a desviar de obstáculos dinâmicos utilizando **Redes Neurais Artificiais** e **Algoritmos Genéticos**, programados 100% "do zero" (from scratch), sem o uso de bibliotecas de Machine Learning como TensorFlow ou PyTorch.
-
-*(Sugestão: Adicione aqui um GIF animado demonstrando os carros se desviando dos obstáculos)*
+Projeto prático de simulação computacional construído 100% do zero. O **Carros IA** é um ambiente onde veículos autônomos aprendem a desviar de obstáculos dinâmicos. O projeto implementa Redes Neurais e Algoritmos Genéticos puramente através de matemática e lógica de programação, sem o uso de frameworks prontos (como TensorFlow).
 
 ## 🚀 Funcionalidades
 
-O sistema simula um ecossistema evolutivo com os seguintes módulos:
+O sistema simula um ecossistema de aprendizado de máquina dividido em três pilares:
 
-### Módulo de Inteligência Artificial
-- 🧠 Rede Neural Feedforward construída com matrizes nativas.
-- ⚡ Função de ativação Tangente Hiperbólica (`Tanh`) para tomadas de decisão fluídas.
-- 🎯 Implementação de neurônio de *Bias* (Instinto) para evitar paralisia decisional.
+### Inteligência Artificial (Rede Neural)
+- 🧠 Rede Neural Feedforward com cálculos de matrizes nativos
+- ⚡ Função de ativação Tangente Hiperbólica (`Tanh`)
+- 🎯 Uso de *Bias* para forçar a tomada de decisão
 
-### Módulo de Algoritmo Genético
-- 🧬 População dinâmica de 40 indivíduos simultâneos.
-- 🏆 Sistema de *Reward Shaping* (Fitness) que recompensa alinhamento contínuo e pune colisões.
-- 🔄 Operadores genéticos de *Crossover* (50/50) e Mutação controlada (10% de probabilidade, ajuste de ±0.3).
-- 🛡️ Elitismo robusto que protege o DNA dos 5 melhores indivíduos (evitando o Esquecimento Catastrófico).
+### Algoritmo Genético
+- 🧬 Gerenciamento de população (40 indivíduos por geração)
+- 🏆 *Reward Shaping* (Cálculo de Fitness focado em alinhamento ao invés de apenas sobrevivência)
+- 🛡️ Elitismo (Top 5 carros passam seus genes intactos) e Crossover (50/50)
 
-### Módulo Gráfico e Ferramentas
-- 👁️ Sistema de visão por *Raycasting* otimizado.
-- 📊 Dashboard analítico com renderização do gráfico de aprendizado em tempo real.
-- 💾 Persistência de dados: *Save/Load* dos "cérebros" (pesos da rede) em formato JSON.
+### Interface e Ferramentas
+- 👁️ Visão espacial otimizada por *Raycasting* (`clipline`)
+- 📊 Dashboard analítico em tempo real com gráfico de aprendizado
+- 💾 Persistência do modelo treinado em formato `.json`
 
-## 🛠️ Conceitos Matemáticos e Estruturais Aplicados
+## 🛠️ Conceitos Matemáticos Aplicados
 
 | Conceito | Descrição |
 |----------|-----------|
-| **Redes Neurais Artificiais** | Propagação de dados (*Forward Propagation*) multiplicando entradas (sensores) por pesos sinápticos. |
-| **Algoritmos Genéticos** | Seleção natural, mutação paramétrica e recombinação genética para evolução de comportamento. |
-| **Geometria Analítica** | Uso de trigonometria e cálculo de interseção de linhas (`clipline`) para o sistema de *Raycasting* e FOV. |
-| **Serialização de Dados** | I/O de arquivos utilizando a biblioteca `json` para persistência das matrizes de aprendizado. |
+| **Matemática de Matrizes** | *Forward Propagation* multiplicando os inputs (sensores) pelos pesos (DNA) |
+| **Geometria Analítica** | Cálculo de interseção de retas para simular o campo de visão dos sensores |
+| **Evolução Computacional** | Seleção de reprodutores, mutação randômica e elitismo |
+| **I/O de Arquivos** | Serialização e desserialização de dados com a biblioteca `json` |
 
 ## 💻 Tecnologias Utilizadas
 
 - **Linguagem:** Python (3.x)
-- **Motor Gráfico:** Pygame (2.x)
-- **Matemática:** Bibliotecas nativas `math` e `random`
-- **Persistência:** Biblioteca nativa `json`
+- **Renderização:** Pygame (2.x)
+- **Módulos Nativos:** `math`, `random`, `json`
+
+## 📋 Pré-requisitos
+
+- **Python 3.x**
+- **Git** para clonar o repositório
+- Pacote **Pygame** instalado via `pip`
 
 ## 📁 Estrutura do Projeto
 
 ```text
 Carros-IA/
-├── main.py              # Ponto de entrada, renderização do dashboard e loop principal
-├── car.py               # Física do veículo, lógica de movimentação e cálculo de Fitness
-├── neural_network.py    # Matemática do Forward Propagation, Crossover e Mutação
-├── genetic.py           # Motor evolutivo, seleção de reprodutores e Elitismo
+├── main.py              # Ponto de entrada, dashboard e loop principal
+├── car.py               # Física do veículo e cálculo de Fitness
+├── neural_network.py    # Matemática da Rede Neural e Mutação
+├── genetic.py           # Motor evolutivo e seleção
 ├── sensor.py            # Sistema de visão (Raycasting)
-├── obstaculo.py         # Geração procedimental de terreno e alvos
-├── pista.py             # Barreiras físicas e colisões do ambiente
-└── README.md            # Documentação do projeto
+├── obstaculo.py         # Geração de terreno e alvos
+└── pista.py             # Barreiras físicas do ambiente
 ```
 
 ## 🔧 Como Compilar e Executar
 
-**1. Clone o repositório:**
 ```bash
+# Clone o repositório
 git clone [https://github.com/Iucasoa/NOME_DO_SEU_REPOSITORIO.git](https://github.com/Iucasoa/NOME_DO_SEU_REPOSITORIO.git)
 cd NOME_DO_SEU_REPOSITORIO
-```
 
-**2. Instale a dependência gráfica:**
-```bash
+# Instale a dependência
 pip install pygame
-```
 
-**3. Execute a simulação:**
-```bash
+# Execute a simulação
 python main.py
 ```
 
 ## 📝 Como Usar
 
-1. Ao iniciar o `main.py`, a simulação começará automaticamente na Geração 1.
-2. Acompanhe a evolução no Dashboard (Canto superior direito da tela).
-3. Interações em tempo real (Atalhos de Teclado):
-   - **`[S]` Guardar Modelo:** Exporta a inteligência do melhor carro para um arquivo `melhor_cerebro.json`.
-   - **`[L]` Carregar Modelo:** Injeta a inteligência salva em toda a população atual.
+```text
+1. O simulador inicia automaticamente na Geração 1.
+2. Acompanhe a evolução da IA pelo gráfico no canto superior direito.
+3. Comandos de Teclado:
+   - [S] Salvar Modelo: Salva o "cérebro" do melhor carro atual.
+   - [L] Carregar Modelo: Injeta os pesos salvos em todos os carros vivos.
+```
+
+## 🎓 Aprendizados Principais
+
+- Construção arquitetural de Machine Learning do zero
+- Prevenção de problemas como *Reward Hacking* e *Catastrophic Forgetting*
+- Otimização de processamento substituindo colisões de pixels por equações matemáticas
+- Separação clara de responsabilidades (Lógica vs. Renderização)
 
 ## 📊 Exemplo de Saída (Dashboard)
 
@@ -99,15 +105,24 @@ Melhor da Sessão: 5 buracos
 |        /\                                |
 |   /\  /  \    /\/\                       |
 |  /  \/    \  /    \  /\                  |
-| /          \/      \/  \                 |
 +------------------------------------------+
 ```
+
+## 🤝 Contribuindo
+
+Este é um projeto de estudo contínuo. Sugestões são bem-vindas!
+
+1. Faça um Fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/NovaAtivacao`)
+3. Commit suas mudanças (`git commit -m 'Add nova função de ativação'`)
+4. Push para a branch (`git push origin feature/NovaAtivacao`)
+5. Abra um Pull Request
 
 ## 👨‍💻 Autor
 
 **João Lucas Oliveira de Andrade**
 - GitHub: [@Iucasoa](https://github.com/Iucasoa)
-- Formação: Estudante de Engenharia de Computação - UFERSA
+- Universidade: UFERSA (Engenharia de Computação)
 
 ## 📄 Licença
 
